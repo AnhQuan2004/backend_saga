@@ -174,17 +174,17 @@ async function main() {
   }
 
   // Example 7: Distribute a bounty (admin only)
-  async function distributeBounty(bountyId: bigint) {
-    console.log(`Distributing bounty ${bountyId}...`);
+  // async function distributeBounty(bountyId: bigint) {
+  //   console.log(`Distributing bounty ${bountyId}...`);
 
-    try {
-      const tx = await contract.distributeBounty(bountyId);
-      await tx.wait();
-      console.log("Bounty distributed successfully!");
-    } catch (error) {
-      console.error("Error distributing bounty:", error);
-    }
-  }
+  //   try {
+  //     const tx = await contract.distributeBounty(bountyId);
+  //     await tx.wait();
+  //     console.log("Bounty distributed successfully!");
+  //   } catch (error) {
+  //     console.error("Error distributing bounty:", error);
+  //   }
+  // }
 
   // Execute the examples
   try {
@@ -214,7 +214,7 @@ async function main() {
       await addContributor(bountyId, contributorAddress);
 
       // 7. Distribute the bounty (requires admin role)
-      await distributeBounty(bountyId);
+      // await distributeBounty(bountyId);
     }
   } catch (error) {
     console.error("Error in execution:", error);
