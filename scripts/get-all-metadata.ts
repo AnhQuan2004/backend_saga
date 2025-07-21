@@ -6,7 +6,7 @@ import axios from "axios";
 
 dotenv.config();
 
-const CONTRACT_ADDRESS = "0x6251C36F321aeEf6F06ED0fdFcd597862e784D06"; // Replace with your deployed contract address
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || ""; // Replace with your deployed contract address
 
 async function main() {
   const privateKey = process.env.PRIVATE_KEY || "";

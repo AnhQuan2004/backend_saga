@@ -7,7 +7,7 @@ import { getBountyDetails } from "./get-all-bounties";
 dotenv.config();
 
 // Contract address - replace with your deployed contract address
-const CONTRACT_ADDRESS = "0x6251C36F321aeEf6F06ED0fdFcd597862e784D06";
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || "";
 
 async function main() {
   // Get private key from environment
@@ -51,7 +51,15 @@ async function main() {
     const createdAt = Math.floor(Date.now() / 1000);
     const tags = ["example", "test", "metadata"];
     const tokenURI = "https://ipfs.io/ipfs/QmMetadata";
-
+    console.log("mintMetadataNFT", [
+      sourceUrl,
+      contentHash,
+      contentLink,
+      embedVectorId,
+      createdAt,
+      tags,
+      tokenURI
+    ])
     try {
       const tx = await contract.mintMetadataNFT(
         sourceUrl,
@@ -204,20 +212,21 @@ async function main() {
     //   await getMetadataByCreator(wallet.address);
 
     //   // 4. Donate to the creator (which is the current wallet in this case)
-    //   await donateToCreator(tokenId, "0.001");
+    // console.log("Donating to creator");
+    //   await donateToCreator(7n, "31");
+    //   console.log("Donated to creator");
     // }
     // 5. Create a bounty
-    const bountyId = await createBounty("0.102");
     
-    if (bountyId) {
-      // 6. Add a contributor to the bounty (requires admin role)
-      const contributorAddress = "0x1234567890123456789012345678901234567890"; // Example address
-      await addContributor(bountyId, contributorAddress);
+    // if (bountyId) {
+    //   // 6. Add a contributor to the bounty (requires admin role)
+      // const contributorAddress = "0x291AdC431AE72559BF1814c2041dA45E81751E9c"; // Example address
+      // await addContributor(0n, contributorAddress);
       
-      await getBountyDetails(contract, bountyId);
+      // await getBountyDetails(contract, bountyId);
       // 7. Distribute the bounty (requires admin role)
-      await distributeBounty(bountyId);
-    }
+      await distributeBounty(0n);
+    // }
   } catch (error) {
     console.error("Error in execution:", error);
   }

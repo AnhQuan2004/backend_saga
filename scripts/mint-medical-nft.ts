@@ -6,7 +6,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 // Contract address
-const CONTRACT_ADDRESS = "0x6251C36F321aeEf6F06ED0fdFcd597862e784D06";
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || "";
 
 async function main() {
   const privateKey = process.env.PRIVATE_KEY || "";

@@ -12,9 +12,7 @@ const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || "";
 export async function getBountyDetails(contract: ethers.Contract, bountyId: bigint) {
   try {
     // Get bounty details
-    console.log("Getting bounty details for bountyId:", bountyId);
     const bounty = await contract.getBounty(bountyId);
-    console.log("Bounty details:", bounty);
     
     return {
       id: Number(bountyId),
@@ -29,7 +27,7 @@ export async function getBountyDetails(contract: ethers.Contract, bountyId: bigi
   }
 }
 // Function to get all bounties
-async function getAllBounties() {
+export async function getAllBounties() {
   try {
     // Get private key from environment
     const privateKey = process.env.PRIVATE_KEY || "";
@@ -42,7 +40,6 @@ async function getAllBounties() {
     const provider = new ethers.JsonRpcProvider("https://asga-2752562277992000-1.jsonrpc.sagarpc.io");
     const wallet = new ethers.Wallet(privateKey, provider);
     
-    console.log(`Connected with address: ${wallet.address}`);
   
     // Get the contract artifacts for ABI
     const artifactsPath = path.join(__dirname, "../artifacts/contracts/Contract.sol/CrawlRegistry.json");
@@ -53,7 +50,6 @@ async function getAllBounties() {
     
     // Get the next bounty ID to determine how many bounties exist
     const nextBountyId = await contract.nextBountyId();
-    console.log(`Total bounties: ${nextBountyId}`);
     
     if (Number(nextBountyId) === 0) {
       console.log("No bounties found.");
@@ -63,12 +59,10 @@ async function getAllBounties() {
     // Get details for each bounty
     const allBounties = [];
     for (let i = 0; i < Number(nextBountyId); i++) {
-      console.log(`Getting details for bounty ${i}...`);
       const bountyDetails = await getBountyDetails(contract, BigInt(i));
       
       if (bountyDetails) {
         allBounties.push(bountyDetails);
-        console.log(`Bounty ${i}: ${bountyDetails.amount} ETH, Creator: ${bountyDetails.creator}`);
       }
     }
     
@@ -120,7 +114,6 @@ async function getBountiesByCreator(creatorAddress: string) {
         
         if (bountyDetails) {
           creatorBounties.push(bountyDetails);
-          console.log(`Bounty ${i}: ${bountyDetails.amount} ETH, Creator: ${bountyDetails.creator}`);
         }
       }
     }
@@ -172,7 +165,6 @@ async function getBountiesForContributor(contributorAddress: string) {
         (contributor: string) => contributor.toLowerCase() === contributorAddress.toLowerCase()
       )) {
         contributorBounties.push(bountyDetails);
-        console.log(`Bounty ${i}: ${bountyDetails.amount} ETH, Creator: ${bountyDetails.creator}`);
       }
     }
     
@@ -183,49 +175,49 @@ async function getBountiesForContributor(contributorAddress: string) {
   }
 }
 
-// Main function to handle command line arguments
-async function main() {
-  const args = process.argv.slice(2);
-  const command = args[0];
-  const address = args[1];
+// // Main function to handle command line arguments
+// async function main() {
+//   const args = process.argv.slice(2);
+//   const command = args[0];
+//   const address = args[1];
   
-  let bounties;
+//   let bounties;
   
-  if (command === "creator" && address) {
-    console.log(`Getting bounties created by: ${address}`);
-    bounties = await getBountiesByCreator(address);
-  } else if (command === "contributor" && address) {
-    console.log(`Getting bounties where ${address} is a contributor`);
-    bounties = await getBountiesForContributor(address);
-  } else {
-    console.log("Getting all bounties");
-    bounties = await getAllBounties();
-  }
+//   if (command === "creator" && address) {
+//     console.log(`Getting bounties created by: ${address}`);
+//     bounties = await getBountiesByCreator(address);
+//   } else if (command === "contributor" && address) {
+//     console.log(`Getting bounties where ${address} is a contributor`);
+//     bounties = await getBountiesForContributor(address);
+//   } else {
+//     console.log("Getting all bounties");
+//     bounties = await getAllBounties();
+//   }
   
-  // Output the results
-  if (bounties.length > 0) {
-    console.log("\n=== Bounties Summary ===");
-    bounties.forEach((bounty) => {
-      console.log(`\n--- Bounty ${bounty.id} ---`);
-      console.log(`Amount: ${bounty.amount} ETH`);
-      console.log(`Creator: ${bounty.creator}`);
-      console.log(`Contributors: ${bounty.contributors.length}`);
-      console.log(`Distributed: ${bounty.distributed ? "Yes" : "No"}`);
-    });
+//   // Output the results
+//   if (bounties.length > 0) {
+//     console.log("\n=== Bounties Summary ===");
+//     bounties.forEach((bounty) => {
+//       console.log(`\n--- Bounty ${bounty.id} ---`);
+//       console.log(`Amount: ${bounty.amount} ETH`);
+//       console.log(`Creator: ${bounty.creator}`);
+//       console.log(`Contributors: ${bounty.contributors.length}`);
+//       console.log(`Distributed: ${bounty.distributed ? "Yes" : "No"}`);
+//     });
     
-    // Save to file
-    const outputPath = path.join(__dirname, "../bounties-output.json");
-    fs.writeFileSync(outputPath, JSON.stringify(bounties, null, 2));
-    console.log(`\nBounties saved to ${outputPath}`);
-  } else {
-    console.log("\nNo bounties found.");
-  }
-}
+//     // Save to file
+//     const outputPath = path.join(__dirname, "../bounties-output.json");
+//     fs.writeFileSync(outputPath, JSON.stringify(bounties, null, 2));
+//     console.log(`\nBounties saved to ${outputPath}`);
+//   } else {
+//     console.log("\nNo bounties found.");
+//   }
+// }
 
 // Run the script
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  }); 
+// main()
+//   .then(() => process.exit(0))
+//   .catch((error) => {
+//     console.error(error);
+//     process.exit(1);
+//   }); 

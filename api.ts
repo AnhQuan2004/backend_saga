@@ -7,6 +7,7 @@ import Irys from "@irys/sdk";
 import path from "path";
 import axios from "axios";
 import { ethers } from "ethers";
+import { getAllBounties } from "./scripts/get-all-bounties";
 
 // Explicitly load the .env file from the same directory as api.ts
 config({ path: path.resolve(__dirname, ".env") });
@@ -499,7 +500,7 @@ const getContract = async () => {
   );
   const contractArtifact = JSON.parse(fs.readFileSync(artifactsPath, "utf8"));
 
-  const CONTRACT_ADDRESS = "0x6251C36F321aeEf6F06ED0fdFcd597862e784D06";
+  const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || "";
   const contract = new ethers.Contract(
     CONTRACT_ADDRESS,
     contractArtifact.abi,
@@ -1065,25 +1066,25 @@ app.post("/api/generate-and-mint", async (req: Request, res: Response) => {
       { name: "Type", value: "Metadata" },
     ]);
 
-    // Step 3: Mint NFT automatically
-    console.log("Minting NFT...");
-    const { contract } = await getContract();
+    // // Step 3: Mint NFT automatically
+    // console.log("Minting NFT...");
+    // const { contract } = await getContract();
 
-    const tx = await contract.mintMetadataNFT(
-      input_text,
-      contentHash,
-      contentUrl,
-      "vector_" + Date.now(),
-      Math.floor(Date.now() / 1000),
-      tags,
-      metadataUrl
-    );
+    // const tx = await contract.mintMetadataNFT(
+    //   input_text,
+    //   contentHash,
+    //   contentUrl,
+    //   "vector_" + Date.now(),
+    //   Math.floor(Date.now() / 1000),
+    //   tags,
+    //   metadataUrl
+    // );
 
-    const receipt = await tx.wait();
-    const event = receipt.logs.find(
-      (log: any) => log.fragment && log.fragment.name === "MetadataMinted"
-    );
-    const tokenId = event ? event.args[0].toString() : null;
+    // const receipt = await tx.wait();
+    // const event = receipt.logs.find(
+    //   (log: any) => log.fragment && log.fragment.name === "MetadataMinted"
+    // );
+    // const tokenId = event ? event.args[0].toString() : null;
 
     // Step 4: Save to history
     const history = JSON.parse(fs.readFileSync(HISTORY_FILE, "utf-8"));
@@ -1094,43 +1095,20 @@ app.post("/api/generate-and-mint", async (req: Request, res: Response) => {
       created_at: new Date().toISOString(),
       content_url: contentUrl,
       metadata_url: metadataUrl,
-      tokenId: tokenId,
-      transactionHash: tx.hash,
+      tokenId: 0,
+      transactionHash: 'tx.hash',
     });
     fs.writeFileSync(HISTORY_FILE, JSON.stringify(history));
 
     res.json({
       success: true,
       message: "Dataset generated and NFT minted successfully",
-      tokenId: tokenId,
-      transactionHash: tx.hash,
       data: synthetic,
       metadata: metadata,
       irys_links: {
         content_url: contentUrl,
         metadata_url: metadataUrl,
-      },
-      nft_info: {
-        tokenId: tokenId,
-        contract_address: "0x6251C36F321aeEf6F06ED0fdFcd597862e784D06",
-        network: "Saga",
-        explorer_url: `https://sagascan.io/tx/${tx.hash}`,
-      },
-      marketplace_info: {
-        visibility: visibility,
-        price_usdc: price_usdc,
-        domain: domain,
-        listEndpoint: `/api/marketplace/list/${tokenId}`,
-      },
-      donation_info: {
-        tokenId: tokenId,
-        donateEndpoint: `/api/nft/${tokenId}/donate`,
-        example: {
-          method: "POST",
-          url: `http://localhost:3001/api/nft/${tokenId}/donate`,
-          body: { amount: "0.01" },
-        },
-      },
+      }
     });
   } catch (error) {
     console.error("Generate and mint error:", error);
@@ -1182,7 +1160,7 @@ app.get("/api/metadata/all", async (req: Request, res: Response) => {
     console.log("Fetching all metadata from contract...");
     const { contract } = await getContract();
     const allMetadata: any[] = [];
-    
+    console.log(contract);
     // Since we don't have totalSupply(), we'll try tokens starting from 1 until we get errors
     let tokenId = 1;
     let totalTokensChecked = 0;
@@ -1196,19 +1174,10 @@ app.get("/api/metadata/all", async (req: Request, res: Response) => {
         }
         
         const metadata = await contract.getMetadata(tokenId);
+        console.log(metadata);
         const tokenURI = await contract.tokenURI(tokenId);
-        
         // Fetch additional metadata from tokenURI
-        let additionalMetadata = null;
-        try {
-          const response = await axios.get(tokenURI, { timeout: 5000 });
-          additionalMetadata = response.data;
-        } catch (error) {
-          console.log(`Could not fetch additional metadata for token ${tokenId}:`, (error as Error).message);
-        }
-        
         // Only include tokens with complete metadata (name and description)
-        if (additionalMetadata && (additionalMetadata as any).name && (additionalMetadata as any).description) {
           allMetadata.push({
             tokenId: tokenId,
             source_url: metadata.source_url,
@@ -1218,26 +1187,9 @@ app.get("/api/metadata/all", async (req: Request, res: Response) => {
             created_at: Number(metadata.created_at),
             tags: metadata.tags,
             owner: metadata.owner,
-            tokenURI: tokenURI,
-            // Additional metadata from tokenURI
-            name: (additionalMetadata as any).name,
-            description: (additionalMetadata as any).description,
-            domain: (additionalMetadata as any).domain || null,
-            visibility: (additionalMetadata as any).visibility || null,
-            price_usdc: (additionalMetadata as any).price_usdc || null,
-            sample_size: (additionalMetadata as any).sample_size || null,
-            ai_model: (additionalMetadata as any).ai_model || null,
-            input_text: (additionalMetadata as any).input_text || null,
-            output_format: (additionalMetadata as any).output_format || null,
-            source_dataset: (additionalMetadata as any).source_dataset || null,
-            max_tokens: (additionalMetadata as any).max_tokens || null,
-            full_metadata: additionalMetadata
-          });
-          
-          console.log(`✅ Token ${tokenId}: "${(additionalMetadata as any).name}"`);
-        } else {
-          console.log(`⏭️  Token ${tokenId}: Skipped (incomplete metadata)`);
-        }
+            tokenURI: tokenURI})
+         
+  
         
         totalTokensChecked++;
         tokenId++;
@@ -1465,66 +1417,17 @@ app.get("/api/bounties/all", async (req: Request, res: Response) => {
     const { contract } = await getContract();
     
     // Get the next bounty ID to determine how many bounties exist
-    const nextBountyId = await contract.nextBountyId();
-    console.log(`Total bounties: ${nextBountyId}`);
-    
-    if (Number(nextBountyId) === 0) {
-      return res.json({
-        success: true,
-        total: 0,
-        bounties: [],
-        message: "No bounties found"
-      });
-    }
-    
-    // Function to get bounty details including contributors
-    const getBountyDetails = async (bountyId: number) => {
-      try {
-        // Get bounty details
-        const bounty = await contract.bounties(bountyId);
-        
-        // Get bounty contributors from array
-        const contributors = bounty.contributors || [];
-        
-        return {
-          id: bountyId,
-          amount: ethers.formatEther(bounty.amount),
-          amountWei: bounty.amount.toString(),
-          creator: bounty.creator,
-          contributors: contributors,
-          contributorCount: contributors.length,
-          distributed: bounty.distributed,
-          status: bounty.distributed ? "distributed" : "active"
-        };
-      } catch (error) {
-        console.error(`Error getting details for bounty ${bountyId}:`, error);
-        return null;
-      }
-    };
-    
-    // Get details for each bounty
-    const allBounties: any[] = [];
-    for (let i = 0; i < Number(nextBountyId); i++) {
-      console.log(`Getting details for bounty ${i}...`);
-      const bountyDetails = await getBountyDetails(i);
-      
-      if (bountyDetails) {
-        allBounties.push(bountyDetails);
-        console.log(`✅ Bounty ${i}: ${bountyDetails.amount} ETH, Creator: ${bountyDetails.creator}, Contributors: ${bountyDetails.contributorCount}`);
-      }
-    }
-    
-    // Sort by ID descending (newest first)
-    allBounties.sort((a: any, b: any) => b.id - a.id);
+    console.log("Getting all bounties...");
+    const allBounties = await getAllBounties();
     
     res.json({
       success: true,
       total: allBounties.length,
       bounties: allBounties,
       summary: {
-        active: allBounties.filter(b => !b.distributed).length,
-        distributed: allBounties.filter(b => b.distributed).length,
-        totalValue: allBounties.reduce((sum, b) => sum + parseFloat(b.amount), 0).toFixed(6) + " ETH"
+        active: allBounties.filter((b: any) => !b.distributed).length,
+        distributed: allBounties.filter((b: any) => b.distributed).length,
+        totalValue: allBounties.reduce((sum: number, b: any) => sum + parseFloat(b.amount), 0).toFixed(6) + " ETH"
       }
     });
     
