@@ -12,30 +12,15 @@ const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || "";
 async function getBountyDetails(contract: ethers.Contract, bountyId: bigint) {
   try {
     // Get bounty details
-    const bounty = await contract.bounties(bountyId);
-    
-    // Get bounty contributors
-    const contributors = [];
-    let i = 0;
-    let hasMore = true;
-    
-    // Since we can't directly get the array of contributors from the mapping,
-    // we'll try to access contributors until we get an error
-    while (hasMore) {
-      try {
-        const contributor = await contract.bounties(bountyId, "contributors", i);
-        contributors.push(contributor);
-        i++;
-      } catch (error) {
-        hasMore = false;
-      }
-    }
+    console.log("Getting bounty details for bountyId:", bountyId);
+    const bounty = await contract.getBounty(bountyId);
+   
     
     return {
       id: Number(bountyId),
       amount: ethers.formatEther(bounty.amount),
       creator: bounty.creator,
-      contributors: contributors,
+      contributors: bounty.contributors,
       distributed: bounty.distributed
     };
   } catch (error) {
@@ -43,7 +28,6 @@ async function getBountyDetails(contract: ethers.Contract, bountyId: bigint) {
     return null;
   }
 }
-
 // Function to get all bounties
 async function getAllBounties() {
   try {
