@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import fs from "fs";
 import path from "path";
 import * as dotenv from "dotenv";
+import { getBountyDetails } from "./get-all-bounties";
 
 dotenv.config();
 
@@ -10,6 +11,7 @@ const CONTRACT_ADDRESS = "0x6251C36F321aeEf6F06ED0fdFcd597862e784D06";
 
 async function main() {
   // Get private key from environment
+  
   const privateKey = process.env.PRIVATE_KEY || "";
   if (!privateKey) {
     console.error("Please set your PRIVATE_KEY in the .env file");
@@ -174,17 +176,17 @@ async function main() {
   }
 
   // Example 7: Distribute a bounty (admin only)
-  // async function distributeBounty(bountyId: bigint) {
-  //   console.log(`Distributing bounty ${bountyId}...`);
+  async function distributeBounty(bountyId: bigint) {
+    console.log(`Distributing bounty ${bountyId}...`);
 
-  //   try {
-  //     const tx = await contract.distributeBounty(bountyId);
-  //     await tx.wait();
-  //     console.log("Bounty distributed successfully!");
-  //   } catch (error) {
-  //     console.error("Error distributing bounty:", error);
-  //   }
-  // }
+    try {
+      const tx = await contract.distributeBounty(bountyId);
+      await tx.wait();
+      console.log("Bounty distributed successfully!");
+    } catch (error) {
+      console.error("Error distributing bounty:", error);
+    }
+  }
 
   // Execute the examples
   try {
@@ -192,29 +194,29 @@ async function main() {
     console.log("=== CrawlRegistry Interaction Examples ===");
 
     // 1. Mint a new metadata NFT
-    const tokenId = await mintMetadataNFT();
+    // const tokenId = await mintMetadataNFT();
 
-    if (tokenId) {
-      // 2. Get metadata for the token
-      await getMetadata(tokenId);
+    // if (tokenId) {
+    //   // 2. Get metadata for the token
+    //   await getMetadata(tokenId);
 
-      // 3. Get all metadata created by the current wallet
-      await getMetadataByCreator(wallet.address);
+    //   // 3. Get all metadata created by the current wallet
+    //   await getMetadataByCreator(wallet.address);
 
-      // 4. Donate to the creator (which is the current wallet in this case)
-      await donateToCreator(tokenId, "0.001");
-    }
-
+    //   // 4. Donate to the creator (which is the current wallet in this case)
+    //   await donateToCreator(tokenId, "0.001");
+    // }
     // 5. Create a bounty
-    const bountyId = await createBounty("0.002");
-
+    const bountyId = await createBounty("0.102");
+    
     if (bountyId) {
       // 6. Add a contributor to the bounty (requires admin role)
       const contributorAddress = "0x1234567890123456789012345678901234567890"; // Example address
       await addContributor(bountyId, contributorAddress);
-
+      
+      await getBountyDetails(contract, bountyId);
       // 7. Distribute the bounty (requires admin role)
-      // await distributeBounty(bountyId);
+      await distributeBounty(bountyId);
     }
   } catch (error) {
     console.error("Error in execution:", error);

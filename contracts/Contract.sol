@@ -95,6 +95,21 @@ contract CrawlRegistry is ERC721URIStorage, Ownable {
         return crawlMetadataByCreator[creator];
     }
 
+    function getBounty(uint256 bountyId) external view returns (
+        uint256 amount,
+        address creator,
+        address[] memory contributors,
+        bool distributed
+    ) {
+        Bounty storage bounty = bounties[bountyId];
+        return (
+            bounty.amount,
+            bounty.creator,
+            bounty.contributors,
+            bounty.distributed
+        );
+    }
+
     function createBounty() public payable returns (uint256) {
         require(msg.value > 0, "Must stake some token");
 

@@ -9,12 +9,12 @@ dotenv.config();
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || "";
 
 // Function to get bounty details
-async function getBountyDetails(contract: ethers.Contract, bountyId: bigint) {
+export async function getBountyDetails(contract: ethers.Contract, bountyId: bigint) {
   try {
     // Get bounty details
     console.log("Getting bounty details for bountyId:", bountyId);
     const bounty = await contract.getBounty(bountyId);
-   
+    console.log("Bounty details:", bounty);
     
     return {
       id: Number(bountyId),
